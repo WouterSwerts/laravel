@@ -2,19 +2,43 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\User;
+use App\Models\Comment;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class BlogPost extends Model
 {
+    use SoftDeletes;
+
     protected $fillable =  [
         'title', 
-        'content'
+        'content', 
+        'user_id'
     ];
 
     public function comments() {
         return $this->hasMany(Comment::class);
     }
+
+    public function user () {
+        return $this->belongsTo(User::class);
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function (BlogPost $blogPost){
+            $blogPost->comments()->delete();
+        });
+
+        static::restoring(function (BlogPost $blogPost) {
+            $blogPost->comments()->restore();
+        });
+    }
+
 
     use HasFactory;
 }
