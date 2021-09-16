@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\User;
 use App\Models\Comment;
+use App\Scopes\LatestScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -29,6 +30,8 @@ class BlogPost extends Model
     public static function boot()
     {
         parent::boot();
+
+        static::addGlobalScope(new LatestScope);
 
         static::deleting(function (BlogPost $blogPost){
             $blogPost->comments()->delete();
