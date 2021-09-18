@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePost;
+use App\Models\User;
 use App\Models\BlogPost;
 use Illuminate\Http\Request;
+use App\Http\Requests\StorePost;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Cache;
 // use Illuminate\Support\Facades\DB;
 
 class PostsController extends Controller
@@ -37,9 +39,26 @@ class PostsController extends Controller
 
         // comments_count
 
+        $mostCommented = Cache::remember('mostCommented', 60, function() {
+            return BlogPost::mostCommented()->take(5)->get();
+        });
+
+        $mostActive = Cache::remember('mostActive', 60, function() {
+            return User::withMostBlogPosts()->take(5)->get();
+        });
+
+
+        $mostActiveLastMonth = Cache::remember('mostActiveLastMonth', 60, function() {
+            return User::withMostBlogPostsLastMonth()->take(5)->get();
+        });
+
         return view(
             'posts.index',
-             ['posts' => BlogPost::withCount('comments')->get()]
+             ['posts' => BlogPost::latest()->withCount('comments')->with('user')->get(),
+               'mostCommented' => $mostCommented,
+               'mostActive' => $mostActive,
+               'mostActiveLastMonth' => $mostActiveLastMonth,
+             ]
         );
     }
 
@@ -90,8 +109,13 @@ class PostsController extends Controller
     {
         // abort_if(!isset($this->posts[$id]), 404);
 
+        // return view('posts.show', [
+        //     'post' => BlogPost::with(['comments' => function($query){
+        //         return $query->latest();
+        //     }])->findOrFail($id)]);
+
         return view('posts.show', [
-            'post' => BlogPost::with('comments')->findOrFail($id)]);
+                'post' => BlogPost::with('comments')->findOrFail($id)]);
     }
 
     /**
