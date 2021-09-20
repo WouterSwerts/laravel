@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\BlogPost;
+use App\Models\User;
 use App\Models\Comment;
+use App\Models\BlogPost;
 use Illuminate\Database\Seeder;
 
 class CommentsTableSeeder extends Seeder
@@ -26,8 +27,11 @@ class CommentsTableSeeder extends Seeder
 
         $commentsCount = (int)$this->command->ask('How many comments would you like?', 150);
 
-        $comments = Comment::factory($commentsCount)->make()->each(function ($comment) use ($posts) {
+        $users = User::all();
+
+        $comments = Comment::factory($commentsCount)->make()->each(function ($comment) use ($posts, $users) {
             $comment->blog_post_id = $posts->random()->id;
+            $comment->user_id = $users->random()->id;
             $comment->save();
         });
     }

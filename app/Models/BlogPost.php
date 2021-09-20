@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Tag;
 use App\Models\User;
 use App\Models\Comment;
-use App\Scopes\DeletedAdminScope;
 use App\Scopes\LatestScope;
+use App\Scopes\DeletedAdminScope;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -29,6 +31,10 @@ class BlogPost extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function tags() {
+        return $this->belongsToMany(Tag::class)->withTimestamps();
+    }
+
     public function scopeLatest(Builder $query) {
         return $query->orderBy(static::CREATED_AT, 'desc');
     }
@@ -47,6 +53,11 @@ class BlogPost extends Model
 
         static::deleting(function (BlogPost $blogPost){
             $blogPost->comments()->delete();
+            Cache::tags(['blog-post'])->forget("blog-post-{$blogPost->id}");
+        });
+
+        static::updating(function(BlogPost $blogPost) {
+            Cache::tags(['blog-post'])->forget("blog-post-{$blogPost->id}");
         });
 
         static::restoring(function (BlogPost $blogPost) {

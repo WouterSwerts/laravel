@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Comment;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -45,6 +46,12 @@ class User extends Authenticatable
     public function blogPosts() {
         return $this->hasMany(BlogPost::class);
     }
+
+    public function comments() {
+        return $this->hasMany(Comment::class);
+    }
+
+    
 
     public function scopeWithMostBlogPosts(Builder $query) {
         return $query->withCount('blogPosts')->orderBy('blog_posts_count', 'desc');
