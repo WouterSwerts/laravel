@@ -31,7 +31,7 @@
 
    @forelse($post->comments as $comment)
       <p>
-         {{ $comment->content }},
+         {{ $comment->content }}
       </p>
       
       @updated(['date' => $comment->created_at, 'name' => $comment->user->name])
