@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Tag;
 use App\Models\User;
+use App\Models\Image;
 use App\Models\Comment;
 use App\Scopes\LatestScope;
 use App\Scopes\DeletedAdminScope;
@@ -35,6 +36,10 @@ class BlogPost extends Model
         return $this->belongsToMany(Tag::class)->withTimestamps();
     }
 
+    public function image() {
+        return $this->morphOne(Image::class, 'imageable');
+    }
+
     public function scopeLatest(Builder $query) {
         return $query->orderBy(static::CREATED_AT, 'desc');
     }
@@ -42,6 +47,13 @@ class BlogPost extends Model
     public function scopeMostCommented(Builder $query) {
         // comments_count
         return $query->withCount('comments')->orderBy('comments_count', 'desc');
+    }
+    
+    public function scopeLatestWithRelations(Builder $query) {
+        return $query->latest()
+            ->withCount('comments')
+            ->with('user')
+            ->with('tags');
     }
 
     public static function boot()
@@ -53,6 +65,7 @@ class BlogPost extends Model
 
         static::deleting(function (BlogPost $blogPost){
             $blogPost->comments()->delete();
+            // $blogPost->image()->delete();
             Cache::tags(['blog-post'])->forget("blog-post-{$blogPost->id}");
         });
 
