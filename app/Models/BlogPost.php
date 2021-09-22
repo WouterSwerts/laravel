@@ -8,6 +8,7 @@ use App\Models\Image;
 use App\Models\Comment;
 use App\Scopes\LatestScope;
 use App\Scopes\DeletedAdminScope;
+use App\Traits\Taggable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class BlogPost extends Model
 {
     use SoftDeletes;
+    use Taggable;
 
     protected $fillable =  [
         'title', 
@@ -25,15 +27,11 @@ class BlogPost extends Model
     ];
 
     public function comments() {
-        return $this->hasMany(Comment::class)->latest();
+        return $this->morphMany(Comment::class, 'commentable')->latest();
     }
 
     public function user () {
         return $this->belongsTo(User::class);
-    }
-
-    public function tags() {
-        return $this->belongsToMany(Tag::class)->withTimestamps();
     }
 
     public function image() {
