@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Comment;
+use App\Models\BlogPost;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -71,5 +72,12 @@ class User extends Authenticatable
         }])
             ->has('blogPosts', '>=', 2)
             ->orderBy('blog_posts_count', 'desc');
+    }
+
+    public function scopeThatHasCommentedOnPost(Builder $query, BlogPost $post) {
+       return $query->whereHas('comments', function ($query) use ($post) {
+            return $query->where('commentable_id', '=', $post->id)
+                ->where('commentable_type', '=', BlogPost::class);
+        });
     }
 }
